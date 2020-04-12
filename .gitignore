@@ -1,0 +1,11 @@
+.vscode/
+__pycache__/
+build/
+dist/
+
+setting.ini
+name_list.txt
+精确制导.txt
+
+.pylintrc
+developing_log.txt
