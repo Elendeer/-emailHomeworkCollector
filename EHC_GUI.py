@@ -14,108 +14,8 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QPushButton, QDialog, QApplication
 
 import os
-########################线程类#########################
-class checkThread(QThread):
-    finished_signal = pyqtSignal(str) # 信号
-
-    def __init__(self, path, parent = None):
-        super().__init__(parent)
-        self.m_path = path
-    
-    def run(self):
-        EHC_Checker.EHC_Check(self.m_path)
-        self.finished_signal.emit("统计完成")
-
-class coreThread(QThread):
-    finished_signal = pyqtSignal(str)
-
-    def __init__(self, Para, parent = None):
-        super().__init__(parent)
-        self.m_Para = Para
-
-    def run(self):
-        EHC_core.entrance(self.m_Para)
-        self.finished_signal.emit("收取完成，log已生成")
-#######################################################
-
 
 class Ui_MainWindow(object):
-#########################增加的线程触发函数##############################
-    def __init__(self):
-        super().__init__()
-        self.m_checking = False # 作业统计标志位
-        self.m_coreRunning = False # 核心功能，即邮箱收作业标志位
-        
-        self.tab_2 = QtWidgets.QWidget()
-        self.email_user = QtWidgets.QLineEdit(self.tab_2)
-        self.password = QtWidgets.QLineEdit(self.tab_2)
-        self.pop3_server = QtWidgets.QLineEdit(self.tab_2)
-        self.path = QtWidgets.QLineEdit(self.tab_2)
-        self.requireSubject = QtWidgets.QLineEdit(self.tab_2)
-        self.checkBox = QtWidgets.QCheckBox(self.tab_2)
-
-        self.m_path = os.getcwd()
-        try:
-            with open(self.m_path + "\\setting.ini", 'r', encoding = 'utf-8-sig') as f:
-                self.Para = f.readlines()
-                for i in range(0, 6):
-                    self.Para[i] = self.Para[i].strip('\n') # 去除过行
-                self.email_user.setText(str(self.Para[0]))
-                self.password.setText(self.Para[1])
-                self.pop3_server.setText(self.Para[2])
-                self.path.setText(self.Para[3])
-                self.requireSubject.setText(self.Para[4])
-                if self.Para[5] == "True": 
-                    self.checkBox.setChecked(True)
-                else:
-                    self.checkBox.setChecked(False)
-        except:
-            with open(self.m_path + "\\setting.ini", 'w') as f:
-                for i in range(0, 6):
-                    f.write(':?\n') # 创建文件并写入占位
-            with open(self.m_path + "\\setting.ini", 'r', encoding = 'utf-8-sig') as f:
-                self.Para = f.readlines()
-        print(self.Para)
-    
-    def showCheckMessage(self, message):
-        self.m_checking = False
-        print("{}".format(message))
-    def showCoreMessage(self, message):
-        self.m_coreRunning = False
-        print("{}".format(message))
-
-
-    def gotoCheck(self):
-        if self.m_checking:
-            print("正在统计!")
-            return
-
-        path = self.path.text()
-        if path == ':?': # 空路径判断
-            self.tabWidget.setCurrentIndex(1)
-            return
-        
-        self.gotoCheckThread = checkThread(path)
-        self.gotoCheckThread.finished_signal.connect(self.showCheckMessage) # finished_signal的emit将会传递给showmessage作为参数
-        self.m_checking = True
-        self.gotoCheckThread.start()
-        #self.tabWidget.setCurrentIndex(1)
-        
-    def gotoCore(self):
-        if self.m_coreRunning:
-            print("正在收取！")
-            return
-        for i in range(0, 6):
-            if self.Para[i] == ":?":
-                self.tabWidget.setCurrentIndex(1)
-                return
-
-        self.gotoCoreThread = coreThread(self.Para)
-        self.gotoCoreThread.finished_signal.connect(self.showCoreMessage)
-        self.m_coreRunning = True
-        self.gotoCoreThread.start()
-
-#######################################################
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(778, 537)
@@ -178,7 +78,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.backup)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.tabWidget.addTab(self.tab, "")
-        #self.tab_2 = QtWidgets.QWidget()
+        self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.tab_2)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
@@ -187,34 +87,34 @@ class Ui_MainWindow(object):
         self.Label = QtWidgets.QLabel(self.tab_2)
         self.Label.setObjectName("Label")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.Label)
-        #self.email_user = QtWidgets.QLineEdit(self.tab_2)
+        self.email_user = QtWidgets.QLineEdit(self.tab_2)
         self.email_user.setObjectName("email_user")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.email_user)
         self.Label_2 = QtWidgets.QLabel(self.tab_2)
         self.Label_2.setObjectName("Label_2")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.Label_2)
-        #self.password = QtWidgets.QLineEdit(self.tab_2)
+        self.password = QtWidgets.QLineEdit(self.tab_2)
         self.password.setObjectName("password")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.password)
         self.pOPLabel = QtWidgets.QLabel(self.tab_2)
         self.pOPLabel.setObjectName("pOPLabel")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.pOPLabel)
-        #self.pop3_server = QtWidgets.QLineEdit(self.tab_2)
+        self.pop3_server = QtWidgets.QLineEdit(self.tab_2)
         self.pop3_server.setObjectName("pop3_server")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.pop3_server)
         self.Label_3 = QtWidgets.QLabel(self.tab_2)
         self.Label_3.setObjectName("Label_3")
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.Label_3)
-        #self.requireSubject = QtWidgets.QLineEdit(self.tab_2)
+        self.requireSubject = QtWidgets.QLineEdit(self.tab_2)
         self.requireSubject.setObjectName("requireSubject")
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.requireSubject)
         self.Label_4 = QtWidgets.QLabel(self.tab_2)
         self.Label_4.setObjectName("Label_4")
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.Label_4)
-        #self.path = QtWidgets.QLineEdit(self.tab_2)
+        self.path = QtWidgets.QLineEdit(self.tab_2)
         self.path.setObjectName("path")
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.path)
-        #self.checkBox = QtWidgets.QCheckBox(self.tab_2)
+        self.checkBox = QtWidgets.QCheckBox(self.tab_2)
         self.checkBox.setObjectName("checkBox")
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.checkBox)
         self.save = QtWidgets.QPushButton(self.tab_2)
@@ -249,13 +149,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-        ##################增加的按钮触发################
-        self.check.clicked.connect(self.gotoCheck)
-        self.get.clicked.connect(self.gotoCore)
-
-        ###############################################
-
+    
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "emailHomeworkCollector_Beta0.3"))
