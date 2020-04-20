@@ -52,7 +52,7 @@ def checkNameList(prefix, file_path, working_path):
             f.write('已全部上交')
 
 ##############################################
-def EHC_Check(working_path):
+def entrance(working_path):
     '''
     接口，请提供路径
     '''

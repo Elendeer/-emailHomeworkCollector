@@ -100,7 +100,7 @@ def get_attachment(msg_in, path):
 
 # today = str(datetime.date.today()).replace('-','')
 
-def EHC(Para):
+def entrance(Para):
     #ui.state.setText("功能连接...")
     #ui.progressBar.setRange(0, 0)
 
@@ -201,10 +201,6 @@ def EHC(Para):
     #ui.state.setText("收取完成，log已生成")
     #print("收取完成，log已生成")
 ###################################################################
-def entrance(Para):
-    
-    EHC(Para)
-
 
 if __name__ == "__main__":# __name__内置变量，指当前模块
     Para = ["", "", "", "", "", ""]

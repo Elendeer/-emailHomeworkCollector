@@ -19,7 +19,7 @@ class checkThread(QThread):
         self.m_path = path
     
     def run(self):
-        EHC_Checker.EHC_Check(self.m_path)
+        EHC_Checker.entrance(self.m_path)
         self.finished_signal.emit("统计完成")
 
 class coreThread(QThread):
