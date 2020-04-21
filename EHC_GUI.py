@@ -8,12 +8,10 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import EHC_Checker, EHC_core
 
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QPushButton, QDialog, QApplication
 
-import os
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -180,7 +178,7 @@ class Ui_MainWindow(object):
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'SimSun\'; font-size:14pt; font-weight:600;\"><br /></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'SimSun\';\">课余乱造，谨慎试用；</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'SimSun\';\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'SimSun\';\">售价10元，支持下辈子付款。</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'SimSun\';\">售价1元，支持下辈子付款。</span></p>\n"
 "<p align=\"justify\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'SimSun\';\"><br /></p></body></html>"))
         self.label_2.setText(_translate("MainWindow", "噬月的乱造"))
         self.label_3.setText(_translate("MainWindow", "976534093@qq.com"))

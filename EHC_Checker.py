@@ -1,10 +1,24 @@
 '''
 require for name_list.txt
+含线程类 checkThread
 '''
 
 import os
 import time
 
+from PyQt5.QtCore import QThread, pyqtSignal # qt多线程
+
+#####################线程类#####################
+class checkThread(QThread):
+    finished_signal = pyqtSignal(str) # 信号
+
+    def __init__(self, path, parent = None):
+        super().__init__(parent)
+        self.m_path = path
+    
+    def run(self):
+        checkFile("none", self.m_path, self.m_path)
+        self.finished_signal.emit("统计完成")
 
 
 #################遍历目录函数################
@@ -52,9 +66,3 @@ def checkNameList(prefix, file_path, working_path):
             f.write('已全部上交')
 
 ##############################################
-def entrance(working_path):
-    '''
-    接口，请提供路径
-    '''
-    #time.sleep(3)
-    checkFile("none", working_path, working_path)
