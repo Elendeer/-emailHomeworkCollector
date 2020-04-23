@@ -1,24 +1,28 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QDialog, QFileDialog
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QDir # 目录方法
 
-import EHC_GUI
+import EHC_GUI_
 from EHC_core import coreThread
 from EHC_Checker import checkThread
 from EHC_saveParameters import saveParameters
 
-class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
+class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
     def __init__(self):
         self.MainWindow = QMainWindow()
         super().setupUi(self.MainWindow)
 
         self.progressBar.setRange(0, 100)
+        self.splitter.setStretchFactor(0, 9) # 设置splitter布局为9：1
+        self.splitter.setStretchFactor(1, 1)
 
         ##################增加的按钮触发################
         self.check.clicked.connect(self.__gotoCheck)
         self.get.clicked.connect(self.__gotoCore)
         self.save.clicked.connect(self.__gotoSaveParameters)
+        self.pathButton.clicked.connect(self.__setPath)
 
         ###############################################
         self.m_checking = False # 作业统计标志位
@@ -34,9 +38,9 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
                 self.email_user.setText(str(self.Para[0]))
                 self.password.setText(self.Para[1])
                 self.pop3_server.setText(self.Para[2])
-                self.path.setText(self.Para[3])
+               # self.pathText.setEditText(self.Para[3])
                 self.requireSubject.setText(self.Para[4])
-                if self.Para[5] == "True": 
+                if self.Para[5] == "True":
                     self.checkBox.setChecked(True)
                 else:
                     self.checkBox.setChecked(False)
@@ -53,7 +57,7 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
         self.progressBar.setValue(100)
 
         ##############################################
-    
+
     ##############槽###############
     def __setProgressBar(self,message):
         self.progressBar.setValue(int(message))
@@ -71,6 +75,12 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
     def __setState(self, message):
         self.state.setText(str(message))
 
+    def __setPath(self):
+        path = QDir.toNativeSeparators(QFileDialog(self, str("Path"), QDir.currentPath()))
+        if (self.pathText.findText(path) == -1):
+            self.pathText.setCurrentIndex(self.pathText.findText(path))
+
+
  #########################增加的线程触发函数##############################
     def __gotoCheck(self):
         if self.m_checking:
@@ -81,13 +91,13 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
         if path == ':?': # 空路径判断
             self.tabWidget.setCurrentIndex(1)
             return
-        
+
         self.gotoCheckThread = checkThread(path)
         self.gotoCheckThread.finished_signal.connect(self.__showCheckMessage) # finished_signal的emit将会传递给showmessage作为参数
         self.m_checking = True
         self.gotoCheckThread.start()
         #self.tabWidget.setCurrentIndex(1)
-        
+
     def __gotoCore(self):
         if self.m_coreRunning:
             print("已经在努力收取了哦！")
@@ -109,7 +119,7 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
     def __gotoSaveParameters(self):
         saveParameters(self)
 #######################################################
-   
+
 
 if __name__ == "__main__" :
     print("初始化中...")
@@ -117,8 +127,8 @@ if __name__ == "__main__" :
     ui = Window()
     ui.MainWindow.show()
     sys.exit(app.exec_())
-    
-    
+
+
     '''
     app.exec_()其实就是QApplication的方法，原来这个exec_()方法的作用是“进入程序的主循环直到exit()被调用”，
     如果没有这个方法，运行的时候窗口会闪退，所以show是有发挥作用的，但没有使用exec_()，所以没有进入程序的主循环就直接结束了。
