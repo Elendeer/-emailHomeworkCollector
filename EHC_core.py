@@ -35,14 +35,14 @@ def get_attachment(msg_in, path):
             list_prefix = []
             for i in f.readlines(): # 取前缀用以识别
                 list_prefix.append(i.strip('\n'))
-        
+
     print("文件中读取到的前缀列表")
     print(list_prefix)
 
     for part in msg_in.walk(): # walk()遍历
         # 获取附件名称类型
         file_name = part.get_filename() # 若存在，返回文件名
-        
+
         if file_name:
             h = email.header.Header(file_name)
             # 对附件名称进行解码
@@ -66,7 +66,7 @@ def get_attachment(msg_in, path):
                 # 根据前缀在指定目录下创建文件，注意二进制文件需要用wb模式打开
                 for i in list_prefix:
                     if prefix == i:
-                        
+
                         #######判断路径是否存在######
                         if (os.access(path + '\\' + i, os.F_OK)):
                             print(prefix + "文件夹存在")
@@ -77,7 +77,7 @@ def get_attachment(msg_in, path):
                         ########写入附件######
                         with open(path + '\\' + i + '\\' + filename, 'wb') as att_file:
                             att_file.write(data)
-                        
+
                         attachment_files.append(filename)
 
                         break
@@ -92,25 +92,25 @@ def get_attachment(msg_in, path):
                     with open(path + '\\Unrecognized\\' + filename, 'wb') as att_file:
                         att_file.write(data)
                     attachment_files.append(filename)
-                
+
                 gotfile = True
-        
+
 
     return gotfile, attachment_files
 ###########################################################
 
 # today = str(datetime.date.today()).replace('-','')
 class coreThread(QThread):
-    finished_signal = pyqtSignal(str)
-    progress_signal = pyqtSignal(int) # 用于发射进度信号
-    state_signal = pyqtSignal(str) # 用于发射状态信号（显示在进度条上方
+    m_finished_signal = pyqtSignal(str)
+    m_progress_signal = pyqtSignal(int) # 用于发射进度信号
+    m_state_signal = pyqtSignal(str) # 用于发射状态信号（显示在进度条上方
 
     def __init__(self, Para, parent = None):
         super().__init__(parent)
         self.m_Para = Para
 
     def run(self):
-        self.state_signal.emit("功能连接...")
+        self.m_state_signal.emit("功能连接...")
 
         requireSubject = self.m_Para[4]
 
@@ -124,9 +124,13 @@ class coreThread(QThread):
         else :
             ifDel = False
 
-        self.state_signal.emit("连接到POP3服务器...") 
-        server = poplib.POP3_SSL(pop3_server,995,timeout=20)
-        # 995端口安全传输
+        self.m_state_signal.emit("连接到POP3服务器...")
+        try:
+            server = poplib.POP3_SSL(pop3_server,995,timeout=20)# 995端口安全传输
+        except:
+            print("登录邮箱失败！请检查邮箱地址！")
+            self.m_state_signal.emit("登录邮箱失败！请检查邮箱地址！")
+            return
 
         # 可以打开或关闭调试信息:
         server.set_debuglevel(1)
@@ -145,12 +149,12 @@ class coreThread(QThread):
         index = len(mails)
         print(mails)
         # server.quit()
-        
+
         localtime = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
 
-        self.state_signal.emit("收取中...")
-        self.progress_signal.emit(0)
-        
+        self.m_state_signal.emit("收取中...")
+        self.m_progress_signal.emit(0)
+
         ###################logs目录的判断和创建#####################
         if (os.access(path + '\\logs', os.F_OK)):
             pass
@@ -177,12 +181,12 @@ class coreThread(QThread):
                 if subject:
                     subject=decode_str(subject)
 
-                
+
                 if subject == requireSubject:
                         # 依照邮件主题获取附件
                     try:
                         get, attachment_files = get_attachment(msg, path)
-                        
+
                         if get:
                             for line in attachment_files:
                                 f.write(line + '\n')
@@ -196,9 +200,9 @@ class coreThread(QThread):
                                 pass
                     except Exception: #Download Error
                         pass
-                self.progress_signal.emit(float(100) / index * i)
+                self.m_progress_signal.emit(float(100) / index * i)
 
-        self.progress_signal.emit(100)
+        self.m_progress_signal.emit(100)
         try:
             server.quit()
         except:
@@ -207,5 +211,6 @@ class coreThread(QThread):
         #ui.state.setText("收取完成，log已生成")
         #print("收取完成，log已生成")
 
-        self.finished_signal.emit("收取完成，log已生成")
+        self.m_state_signal.emit("收取完成，log已生成")
+        self.m_finished_signal.emit("收取完成，log已生成")
 ###################################################################

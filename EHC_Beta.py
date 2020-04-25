@@ -1,7 +1,7 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QDialog, QFileDialog
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, Qt
 from PyQt5.QtCore import QDir # 目录方法
 
 import EHC_GUI_
@@ -13,6 +13,11 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
     def __init__(self):
         self.MainWindow = QMainWindow()
         super().setupUi(self.MainWindow)
+
+        self.m_dialogUi = EHC_GUI_.Ui_Dialog() # 弹窗UI成员
+        self.m_dialog = QDialog(self.MainWindow) # 弹窗窗口成员
+        self.m_dialog.setWindowModality(1) # 半模态
+        self.m_dialogUi.setupUi(self.m_dialog)
 
         self.progressBar.setRange(0, 100)
         self.splitter.setStretchFactor(0, 9) # 设置splitter布局为9：1
@@ -38,7 +43,7 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
                 self.email_user.setText(str(self.Para[0]))
                 self.password.setText(self.Para[1])
                 self.pop3_server.setText(self.Para[2])
-               # self.pathText.setEditText(self.Para[3])
+                self.pathText.addItem(self.Para[3])
                 self.requireSubject.setText(self.Para[4])
                 if self.Para[5] == "True":
                     self.checkBox.setChecked(True)
@@ -76,9 +81,11 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
         self.state.setText(str(message))
 
     def __setPath(self):
-        path = QDir.toNativeSeparators(QFileDialog(self, str("Path"), QDir.currentPath()))
+
+        path = QDir.toNativeSeparators(QFileDialog.getExistingDirectory(self.MainWindow, str("Path"), QDir.currentPath()))
         if (self.pathText.findText(path) == -1):
-            self.pathText.setCurrentIndex(self.pathText.findText(path))
+            self.pathText.addItem(path)
+        self.pathText.setCurrentIndex(self.pathText.findText(path))
 
 
  #########################增加的线程触发函数##############################
@@ -87,13 +94,17 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
             print("正在统计!")
             return
 
-        path = self.path.text()
+        path = self.Para[3]
         if path == ':?': # 空路径判断
             self.tabWidget.setCurrentIndex(1)
             return
 
         self.gotoCheckThread = checkThread(path)
-        self.gotoCheckThread.finished_signal.connect(self.__showCheckMessage) # finished_signal的emit将会传递给showmessage作为参数
+
+        self.gotoCheckThread.m_finished_signal.connect(self.__showCheckMessage) # m_finished_signal的emit将会传递给showmessage作为参数
+        self.gotoCheckThread.m_process_signal.connect(self.__setProgressBar)
+        self.gotoCheckThread.m_state_signal.connect(self.__setState)
+
         self.m_checking = True
         self.gotoCheckThread.start()
         #self.tabWidget.setCurrentIndex(1)
@@ -109,15 +120,21 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
 
         self.gotoCoreThread = coreThread(self.Para)
 
-        self.gotoCoreThread.finished_signal.connect(self.__showCoreMessage)
-        self.gotoCoreThread.progress_signal.connect(self.__setProgressBar)
-        self.gotoCoreThread.state_signal.connect(self.__setState)
+        self.gotoCoreThread.m_finished_signal.connect(self.__showCoreMessage)
+        self.gotoCoreThread.m_progress_signal.connect(self.__setProgressBar)
+        self.gotoCoreThread.m_state_signal.connect(self.__setState)
 
         self.m_coreRunning = True
         self.gotoCoreThread.start()
 #################保存函数（没有新开线程）###############
     def __gotoSaveParameters(self):
-        saveParameters(self)
+        if (saveParameters(self)):
+            self.m_dialogUi.label.setText("保存成功！")
+            self.m_dialog.show()
+        else:
+            self.m_dialogUi.label.setText("出错！可能有非法路径！")
+            self.m_dialog.show()
+            pass
 #######################################################
 
 
