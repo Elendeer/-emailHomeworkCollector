@@ -4,34 +4,42 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QDialog, QFi
 from PyQt5 import QtWidgets, Qt
 from PyQt5.QtCore import QDir # 目录方法
 
-import EHC_GUI_
+import EHC_GUI
 from EHC_core import coreThread
 from EHC_Checker import checkThread
 from EHC_saveParameters import saveParameters
+from EHC_Packing import packingThread
 
-class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
+class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
     def __init__(self):
         self.MainWindow = QMainWindow()
         super().setupUi(self.MainWindow)
 
-        self.m_dialogUi = EHC_GUI_.Ui_Dialog() # 弹窗UI成员
+        self.m_dialogUi = EHC_GUI.Ui_Dialog() # 弹窗UI成员
         self.m_dialog = QDialog(self.MainWindow) # 弹窗窗口成员
         self.m_dialog.setWindowModality(1) # 半模态
         self.m_dialogUi.setupUi(self.m_dialog)
+
+        self.m_packingDiaUI = EHC_GUI.Ui_packingDialog() # 封包备份设置窗口UI成员
+        self.m_packingDia = QDialog(self.MainWindow) # 封包备份设置窗口成员
+        self.m_packingDia.setWindowModality(1)
+        self.m_packingDiaUI.setupUi(self.m_packingDia)
 
         self.progressBar.setRange(0, 100)
         self.splitter.setStretchFactor(0, 9) # 设置splitter布局为9：1
         self.splitter.setStretchFactor(1, 1)
 
-        ##################增加的按钮触发################
+        ##################增加的按钮触发(主窗口）################
         self.check.clicked.connect(self.__gotoCheck)
         self.get.clicked.connect(self.__gotoCore)
         self.save.clicked.connect(self.__gotoSaveParameters)
         self.pathButton.clicked.connect(self.__setPath)
+        self.backup.clicked.connect(self.__setPacking)
 
         ###############################################
         self.m_checking = False # 作业统计标志位
         self.m_coreRunning = False # 核心功能，即邮箱收作业标志位
+        self.m_packing = False # 封包标志位
 
         #################读取设置文档#################
         self.m_path = os.getcwd()
@@ -58,6 +66,13 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
         print(self.Para)
 
         self.tabWidget.setCurrentIndex(0) # 标签页默认页面为第0页
+        ###############封包备份页面的初始化#################
+        with open(self.Para[3] + '\\pre_list.txt', 'r', encoding = 'utf-8-sig') as f:
+            for i in f.readlines(): # 取前缀用以识别
+                self.m_packingDiaUI.itemComboBox.addItem(i.strip('\n'))
+
+        self.m_packingDiaUI.packingName.setText("挺方便欸")
+
         self.state.setText("初始化完毕")
         self.progressBar.setValue(100)
 
@@ -66,6 +81,10 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
     ##############槽###############
     def __setProgressBar(self,message):
         self.progressBar.setValue(int(message))
+
+    def __setState(self, message):
+        self.state.setText(str(message))
+
 
     def __showCheckMessage(self, message):
         self.m_checking = False
@@ -77,9 +96,10 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
         print("{}".format(message))
         self.state.setText(str(message))
 
-    def __setState(self, message):
+    def __showPackMessage(self, message):
+        self.m_packing = False
         self.state.setText(str(message))
-
+###################################子窗口触发######################################
     def __setPath(self):
 
         path = QDir.toNativeSeparators(QFileDialog.getExistingDirectory(self.MainWindow, str("Path"), QDir.currentPath()))
@@ -87,11 +107,24 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
             self.pathText.addItem(path)
         self.pathText.setCurrentIndex(self.pathText.findText(path))
 
+    def __setPacking(self) :
+
+        self.m_packingDiaUI.startButton.clicked.connect(self.__gotoPack)
+        self.m_packingDiaUI.cancelButton.clicked.connect(self.m_packingDia.close)
+
+        self.m_packingDia.show()
+
 
  #########################增加的线程触发函数##############################
     def __gotoCheck(self):
         if self.m_checking:
             print("正在统计!")
+            return
+        if self.m_coreRunning: # 事实上这三个线程并不冲突，只是为了UI整洁暂时不允许同时运行
+            print("进度条君正跑着收作业程序哦")
+            return
+        if self.m_packing:
+            print("进度条君正跑着封包备份程序哦")
             return
 
         path = self.Para[3]
@@ -113,6 +146,13 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
         if self.m_coreRunning:
             print("已经在努力收取了哦！")
             return
+        if self.m_packing:
+            print("进度条君正跑着封包备份程序哦")
+            return
+        if self.m_checking:
+            print("进度条君正跑着遍历统计程序哦")
+            return
+
         for i in range(0, 6):
             if self.Para[i] == ":?":
                 self.tabWidget.setCurrentIndex(1)
@@ -126,6 +166,50 @@ class Window(EHC_GUI_.Ui_MainWindow) :#包含了主窗口作为成员变量了
 
         self.m_coreRunning = True
         self.gotoCoreThread.start()
+
+    def __gotoPack(self) :
+        packingName = self.m_packingDiaUI.packingName.text()
+        if packingName == '':
+            self.m_dialogUi.label.setText("请输入压缩包名称！")
+            self.m_dialog.show()
+            return
+
+        prefix = self.m_packingDiaUI.itemComboBox.currentText()
+        ifDel = self.m_packingDiaUI.ifDelCheckBox.isChecked()
+
+        if self.m_packing:
+            print("正在封包！")
+            return
+        if self.m_checking:
+            print("进度条君正跑着遍历统计程序哦")
+            return
+        if self.m_coreRunning: # 事实上这三个线程并不冲突，只是为了UI整洁暂时不允许同时运行
+            print("进度条君正跑着收作业程序哦")
+            return
+
+        savingPath = self.Para[3] + "\\backup"
+        if not os.path.exists(savingPath) : # 判断backup文件夹是否存在，不存在则自动创建
+            os.makedirs(savingPath)
+
+        os.chdir(os.path.abspath(savingPath))
+        fileList = os.listdir()
+        if packingName + ".zip" in fileList : # 判断是否重名
+            self.m_dialogUi.label.setText("压缩包命名重叠！")
+            self.m_dialog.show()
+            return
+
+        self.gotoPackThread = packingThread(prefix, ifDel, packingName, self.Para[3])
+
+        self.gotoPackThread.m_finished_signal.connect(self.__showPackMessage)
+        self.gotoPackThread.m_progress_signal.connect(self.__setProgressBar)
+        self.gotoPackThread.m_state_signal.connect(self.__setState)
+
+        self.m_packingDia.close()
+
+        self.m_packing = True
+        self.gotoPackThread.start()
+
+
 #################保存函数（没有新开线程）###############
     def __gotoSaveParameters(self):
         if (saveParameters(self)):

@@ -152,7 +152,7 @@ class coreThread(QThread):
 
         localtime = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
 
-        self.m_state_signal.emit("收取中...")
+        self.m_state_signal.emit("从邮箱中读取到{}封，收取中...".format(index))
         self.m_progress_signal.emit(0)
 
         ###################logs目录的判断和创建#####################
@@ -200,7 +200,7 @@ class coreThread(QThread):
                                 pass
                     except Exception: #Download Error
                         pass
-                self.m_progress_signal.emit(float(100) / index * i)
+                self.m_progress_signal.emit(100 / index * i)
 
         self.m_progress_signal.emit(100)
         try:

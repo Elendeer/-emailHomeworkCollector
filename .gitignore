@@ -6,5 +6,6 @@ dist/
 setting.ini
 name_list.txt
 精确制导.txt
+testing.zip
 
 .pylintrc
