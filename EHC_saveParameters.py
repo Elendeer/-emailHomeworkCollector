@@ -27,10 +27,10 @@ def saveParameters(ui) :
             with open(ui.Para[3] + "\\name_list.txt", 'w',  encoding = 'utf-8') as f:
                 pass
         try:
-            with open(ui.Para[3] + "\\pre_list.txt", 'r', encoding = 'utf-8') as f:
+            with open(ui.Para[3] + "\\pre_list.ini", 'r', encoding = 'utf-8') as f:
                 pass
         except:
-            with open(ui.Para[3] + "\\pre_list.txt", 'w', encoding = 'utf-8') as f:
+            with open(ui.Para[3] + "\\pre_list.ini", 'w', encoding = 'utf-8') as f:
                 pass
 
     except:

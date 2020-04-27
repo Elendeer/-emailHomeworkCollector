@@ -43,7 +43,18 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
 
         #################读取设置文档#################
         self.m_path = os.getcwd()
-        try:
+        if not os.path.isfile(self.m_path + '\\setting.ini') : # 判断文件是否存在，不存在则自动创建
+            with open(self.m_path + '\\setting.ini', 'w') as f:
+                for i in range(0, 6):
+                    if i == 3:
+                        f.write(os.path.abspath(self.m_path) + "\n")
+                    else :
+                        f.write(':?\n') # 创建文件并写入占位
+            with open(self.m_path + "\\setting.ini", 'r', encoding = 'utf-8-sig') as f:
+                self.Para = f.readlines()
+            for i in range(0, 6):
+                self.Para[i] = self.Para[i].strip("\n")
+        else :
             with open(self.m_path + "\\setting.ini", 'r', encoding = 'utf-8-sig') as f:
                 self.Para = f.readlines()
                 for i in range(0, 6):
@@ -57,17 +68,14 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
                     self.checkBox.setChecked(True)
                 else:
                     self.checkBox.setChecked(False)
-        except:
-            with open(self.m_path + "\\setting.ini", 'w') as f:
-                for i in range(0, 6):
-                    f.write(':?\n') # 创建文件并写入占位
-            with open(self.m_path + "\\setting.ini", 'r', encoding = 'utf-8-sig') as f:
-                self.Para = f.readlines()
         print(self.Para)
 
         self.tabWidget.setCurrentIndex(0) # 标签页默认页面为第0页
         ###############封包备份页面的初始化#################
-        with open(self.Para[3] + '\\pre_list.txt', 'r', encoding = 'utf-8-sig') as f:
+        if not os.path.isfile(self.Para[3] + '\\pre_list.ini') : # 判断文件是否存在，不存在则自动创建
+            with open(self.Para[3] + '\\pre_list.ini', 'w') as f:
+                pass
+        with open(self.Para[3] + '\\pre_list.ini', 'r', encoding = 'utf-8-sig') as f:
             for i in f.readlines(): # 取前缀用以识别
                 self.m_packingDiaUI.itemComboBox.addItem(i.strip('\n'))
 
@@ -176,6 +184,7 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
 
         prefix = self.m_packingDiaUI.itemComboBox.currentText()
         ifDel = self.m_packingDiaUI.ifDelCheckBox.isChecked()
+        ifOverwrite = self.m_packingDiaUI.ifOverwrite.isChecked()
 
         if self.m_packing:
             print("正在封包！")
@@ -193,7 +202,7 @@ class Window(EHC_GUI.Ui_MainWindow) :#包含了主窗口作为成员变量了
 
         os.chdir(os.path.abspath(savingPath))
         fileList = os.listdir()
-        if packingName + ".zip" in fileList : # 判断是否重名
+        if (packingName + ".zip" in fileList) and (not ifOverwrite) : # 判断是否重名
             self.m_dialogUi.label.setText("压缩包命名重叠！")
             self.m_dialog.show()
             return

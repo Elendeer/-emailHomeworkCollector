@@ -1,7 +1,7 @@
 '''
 emailHomeworkCollector
 
-require for pre_list.txt
+require for pre_list.ini
 含线程类 coreThread
 '''
 
@@ -31,7 +31,7 @@ def get_attachment(msg_in, path):
     gotfile = False
     attachment_files=[]
 
-    with open(path + '\\pre_list.txt', 'r', encoding = 'utf-8-sig') as f:
+    with open(path + '\\pre_list.ini', 'r', encoding = 'utf-8-sig') as f:
             list_prefix = []
             for i in f.readlines(): # 取前缀用以识别
                 list_prefix.append(i.strip('\n'))
